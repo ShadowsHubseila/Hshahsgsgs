@@ -1,0 +1,1368 @@
+-- Script de Proteção para Redz Hub - Versão Funcional
+-- Todos os códigos estão dentro de callbacks apropriados
+
+spawn(function()
+    -- Carrega a biblioteca Redz Hub
+    local success, redzlib = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/ShadowsHubseila/Magnusv5Ui/refs/heads/main/RedzV5.Lua.txt"))()
+    end)
+    
+    if not success then
+        warn("Erro ao carregar Redz Lib: " .. tostring(redzlib))
+        return
+    end
+
+    -- Cria a janela principal
+    local Window = redzlib:MakeWindow({
+        Title = "redz Hub : Blox Fruits",
+        SubTitle = "by redz9999",
+        SaveFolder = "testando | redz lib v5.lua"
+    })
+
+    -- Adiciona botão de minimizar
+    Window:AddMinimizeButton({
+        Button = { Image = "rbxassetid://71014873973869", BackgroundTransparency = 0 },
+        Corner = { CornerRadius = UDim.new(35, 1) },
+    })
+
+    -- Cria a aba de proteção
+    local ImunesTab = Window:MakeTab({"Proteção", "shield"})
+
+    -- ================================
+    -- SISTEMA DE SUMIMENTO DE JOGADOR
+    -- ================================
+
+    local Players = game:GetService("Players")
+    local StarterGui = game:GetService("StarterGui")
+    local LocalPlayer = Players.LocalPlayer
+    local RunService = game:GetService("RunService")
+    local Workspace = game:GetService("Workspace")
+
+    -- Variáveis para sistema de sumimento
+    local armazenados = {}
+    local selectedPlayerName = ""
+
+    -- Função para encontrar jogador
+    local function findPlayerByName(name)
+        name = string.lower(name)
+        for _, player in ipairs(Players:GetPlayers()) do
+            if string.find(string.lower(player.Name), name) then
+                return player
+            end
+        end
+        return nil
+    end
+
+    -- Função para sumir jogador
+    local function sumirJogador(player)
+        if player ~= LocalPlayer and player.Character and player.Character.Parent == workspace then
+            armazenados[player.Name] = player.Character
+            player.Character.Parent = nil
+            return true
+        end
+        return false
+    end
+
+    -- Função para aparecer jogador
+    local function aparecerJogador(player)
+        if armazenados[player.Name] and armazenados[player.Name] then
+            armazenados[player.Name].Parent = workspace
+            armazenados[player.Name] = nil
+            return true
+        end
+        return false
+    end
+
+    -- Interface do sistema de sumimento
+    ImunesTab:AddSection({ Name = "Sistema de Sumimento de Jogadores" })
+    ImunesTab:AddSection({ Name = "Digite o nome do jogador e use os botões abaixo" })
+    
+    ImunesTab:AddTextBox({
+        Name = "Nome do Jogador",
+        Description = "Digite o nome do jogador para sumir/aparecer",
+        PlaceholderText = "Digite o nome...",
+        Callback = function(input)
+            selectedPlayerName = input
+            if input ~= "" then
+                local player = findPlayerByName(input)
+                if player then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Shad0ws ✅",
+                        Text = "Jogador encontrado: " .. player.Name,
+                        Duration = 3
+                    })
+                else
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Shad0ws ❌",
+                        Text = "Jogador '" .. input .. "' não encontrado!",
+                        Duration = 3
+                    })
+                    selectedPlayerName = ""
+                end
+            end
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "🫥 Iniciar Sumimento",
+        Description = "Faz o jogador selecionado sumir",
+        Callback = function()
+            if selectedPlayerName == "" then
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws ❌",
+                    Text = "Digite um nome na caixa primeiro!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local player = findPlayerByName(selectedPlayerName)
+            if player then
+                if armazenados[player.Name] then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Shad0ws ⚠️",
+                        Text = player.Name .. " já está sumido!",
+                        Duration = 3
+                    })
+                else
+                    local success = sumirJogador(player)
+                    if success then
+                        StarterGui:SetCore("SendNotification", {
+                            Title = "Shad0ws 🫥",
+                            Text = "SUMIU: " .. player.Name,
+                            Duration = 3
+                        })
+                    else
+                        StarterGui:SetCore("SendNotification", {
+                            Title = "Shad0ws ❌",
+                            Text = "Não foi possível sumir " .. player.Name,
+                            Duration = 3
+                        })
+                    end
+                end
+            else
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws ❌",
+                    Text = "Jogador não encontrado!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "👁️ Parar Sumimento", 
+        Description = "Faz o jogador selecionado aparecer novamente",
+        Callback = function()
+            if selectedPlayerName == "" then
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws ❌",
+                    Text = "Digite um nome na caixa primeiro!",
+                    Duration = 3
+                })
+                return
+            end
+            
+            local player = findPlayerByName(selectedPlayerName)
+            if player then
+                if armazenados[player.Name] then
+                    local success = aparecerJogador(player)
+                    if success then
+                        StarterGui:SetCore("SendNotification", {
+                            Title = "Shad0ws 👁️",
+                            Text = "APARECEU: " .. player.Name,
+                            Duration = 3
+                        })
+                    else
+                        StarterGui:SetCore("SendNotification", {
+                            Title = "Shad0ws ❌",
+                            Text = "Erro ao fazer " .. player.Name .. " aparecer",
+                            Duration = 3
+                        })
+                    end
+                else
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Shad0ws ⚠️",
+                        Text = player.Name .. " não está sumido!",
+                        Duration = 3
+                    })
+                end
+            else
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws ❌",
+                    Text = "Jogador não encontrado!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "👁️ Aparecer Todos",
+        Description = "Faz TODOS os jogadores sumidos aparecerem",
+        Callback = function()
+            local count = 0
+            for nome, character in pairs(armazenados) do
+                if Players:FindFirstChild(nome) and character then
+                    character.Parent = workspace
+                    count = count + 1
+                end
+            end
+            armazenados = {}
+            
+            if count > 0 then
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws 👁️",
+                    Text = "TODOS APARECERAM: " .. count .. " jogador(es)",
+                    Duration = 4
+                })
+            else
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws ⚠️",
+                    Text = "Nenhum jogador estava sumido!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "📋 Listar Sumidos",
+        Description = "Mostra todos os jogadores que estão sumidos",
+        Callback = function()
+            local count = 0
+            local names = {}
+            
+            for nome, _ in pairs(armazenados) do
+                if Players:FindFirstChild(nome) then
+                    count = count + 1
+                    table.insert(names, nome)
+                end
+            end
+            
+            if count > 0 then
+                local list = table.concat(names, ", ")
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws 📋",
+                    Text = count .. " sumido(s): " .. list,
+                    Duration = 5
+                })
+            else
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Shad0ws 📋",
+                    Text = "Nenhum jogador está sumido!",
+                    Duration = 3
+                })
+            end
+        end
+    })
+
+    -- Limpeza automática quando jogadores saem
+    Players.PlayerRemoving:Connect(function(player)
+        if armazenados[player.Name] then
+            armazenados[player.Name] = nil
+        end
+    end)
+
+    -- ================================
+    -- SISTEMA ANTI-FLING
+    -- ================================
+
+    -- Variáveis para backup de objetos
+    local removedVehicles, removedCanoes, removedJets, removedHelis, removedBalls = {}, {}, {}, {}, {}
+    local antiVehicleConnection, antiCanoeConnection, antiJetConnection, antiHeliConnection, antiBallConnection, antiSitConnection
+
+    -- Funções auxiliares
+    local function moveToBackup(obj, backupTable)
+        table.insert(backupTable, { object = obj, originalParent = obj.Parent })
+        obj.Parent = nil
+    end
+
+    local function restoreFromBackup(backupTable)
+        for _, data in ipairs(backupTable) do
+            if data.object and data.originalParent then
+                data.object.Parent = data.originalParent
+            end
+        end
+        table.clear(backupTable)
+    end
+
+    -- Seção de Scripts de Proteção
+    ImunesTab:AddSection({ Name = "Scripts de Proteção Linux Hub" })
+
+    ImunesTab:AddButton({
+        Name = "Anti Freeze",
+        Callback = function()
+            spawn(function()
+                local success, result = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Shadow6698/antbug/refs/heads/main/Main.txt"))()
+                end)
+                if not success then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Erro",
+                        Text = "Falha ao carregar Anti Freeze",
+                        Duration = 3
+                    })
+                end
+            end)
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "Anti Chaos Hub",
+        Callback = function()
+            spawn(function()
+                local success, result = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Shadow6698/removeplayers/main/Main.txt"))()
+                end)
+                if not success then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Erro",
+                        Text = "Falha ao carregar Anti Chaos Hub",
+                        Duration = 3
+                    })
+                end
+            end)
+        end
+    })
+
+    ImunesTab:AddButton({
+        Name = "Anti Som",
+        Callback = function()
+            spawn(function()
+                local success, result = pcall(function()
+                    loadstring(game:HttpGet("https://raw.githubusercontent.com/Shadow6698/antsom/refs/heads/main/Main.txt"))()
+                end)
+                if not success then
+                    StarterGui:SetCore("SendNotification", {
+                        Title = "Erro",
+                        Text = "Falha ao carregar Anti Som",
+                        Duration = 3
+                    })
+                end
+            end)
+        end
+    })
+
+    -- Seção Anti Flings
+    ImunesTab:AddSection({ Name = "Anti Flings" })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Fling Veículos",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiVehicleConnection = RunService.Heartbeat:Connect(function()
+                    local vehiclesFolder = Workspace:FindFirstChild("Vehicles")
+                    if vehiclesFolder then
+                        for _, vehicle in ipairs(vehiclesFolder:GetChildren()) do
+                            local isMeu = false
+                            for _, seat in ipairs(vehicle:GetDescendants()) do
+                                if (seat:IsA("VehicleSeat") or seat:IsA("Seat")) and seat.Occupant and seat.Occupant.Parent == LocalPlayer.Character then
+                                    isMeu = true
+                                    break
+                                end
+                            end
+                            if not isMeu and vehicle.Parent == vehiclesFolder then
+                                moveToBackup(vehicle, removedVehicles)
+                            end
+                        end
+                    end
+                end)
+            else
+                if antiVehicleConnection then 
+                    antiVehicleConnection:Disconnect() 
+                end
+                restoreFromBackup(removedVehicles)
+            end
+        end
+    })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Canoe Fling",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiCanoeConnection = RunService.Heartbeat:Connect(function()
+                    local storage = Workspace:FindFirstChild("WorkspaceCom") and Workspace.WorkspaceCom:FindFirstChild("001_CanoeStorage")
+                    if storage then
+                        for _, canoe in ipairs(storage:GetChildren()) do
+                            local dono = canoe:FindFirstChild("Owner")
+                            if not dono or dono.Value ~= LocalPlayer then
+                                if canoe.Parent == storage then
+                                    moveToBackup(canoe, removedCanoes)
+                                end
+                            end
+                        end
+                    end
+                end)
+            else
+                if antiCanoeConnection then 
+                    antiCanoeConnection:Disconnect() 
+                end
+                restoreFromBackup(removedCanoes)
+            end
+        end
+    })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Fling Jets",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiJetConnection = RunService.Heartbeat:Connect(function()
+                    local jetFolder = Workspace:FindFirstChild("WorkspaceCom")
+                    if jetFolder and jetFolder:FindFirstChild("001_Airport") then
+                        local storage = jetFolder["001_Airport"]:FindFirstChild("AirportHanger")
+                        if storage and storage:FindFirstChild("001_JetStorage") and storage["001_JetStorage"]:FindFirstChild("JetAirport") then
+                            for _, jet in ipairs(storage["001_JetStorage"].JetAirport:GetChildren()) do
+                                if jet.Name ~= LocalPlayer.Name and jet.Parent == storage["001_JetStorage"].JetAirport then
+                                    moveToBackup(jet, removedJets)
+                                end
+                            end
+                        end
+                    end
+                end)
+            else
+                if antiJetConnection then 
+                    antiJetConnection:Disconnect() 
+                end
+                restoreFromBackup(removedJets)
+            end
+        end
+    })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Fling Helicópteros",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiHeliConnection = RunService.Heartbeat:Connect(function()
+                    local heliFolder = Workspace:FindFirstChild("WorkspaceCom") and Workspace.WorkspaceCom:FindFirstChild("001_HeliStorage")
+                    if heliFolder and heliFolder:FindFirstChild("PoliceStationHeli") then
+                        for _, heli in ipairs(heliFolder.PoliceStationHeli:GetChildren()) do
+                            if heli.Name ~= LocalPlayer.Name and heli.Parent == heliFolder.PoliceStationHeli then
+                                moveToBackup(heli, removedHelis)
+                            end
+                        end
+                    end
+                end)
+            else
+                if antiHeliConnection then 
+                    antiHeliConnection:Disconnect() 
+                end
+                restoreFromBackup(removedHelis)
+            end
+        end
+    })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Fling Ball",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiBallConnection = RunService.Heartbeat:Connect(function()
+                    local ballFolder = Workspace:FindFirstChild("WorkspaceCom") and Workspace.WorkspaceCom:FindFirstChild("001_SoccerBalls")
+                    if ballFolder then
+                        for _, ball in ipairs(ballFolder:GetChildren()) do
+                            if ball.Parent == ballFolder then
+                                moveToBackup(ball, removedBalls)
+                            end
+                        end
+                    end
+                end)
+            else
+                if antiBallConnection then 
+                    antiBallConnection:Disconnect() 
+                end
+                restoreFromBackup(removedBalls)
+            end
+        end
+    })
+
+    -- Seção Anti Sit & Anti Lag
+    ImunesTab:AddSection({ Name = "Anti Sit & Anti Lag & Anti Fling Porta" })
+
+    ImunesTab:AddToggle({
+        Name = "Anti Sit",
+        Default = false,
+        Callback = function(state)
+            if state then
+                antiSitConnection = RunService.Heartbeat:Connect(function()
+                    local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                    if humanoid then
+                        humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, false)
+                        if humanoid:GetState() == Enum.HumanoidStateType.Seated then
+                            humanoid:ChangeState(Enum.HumanoidStateType.Running)
+                        end
+                        if humanoid.SeatPart then
+                            humanoid.Sit = false
+                            humanoid.SeatPart = nil
+                        end
+                    end
+                end)
+            else
+                if antiSitConnection then 
+                    antiSitConnection:Disconnect() 
+                end
+                local humanoid = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+                if humanoid then
+                    humanoid:SetStateEnabled(Enum.HumanoidStateType.Seated, true)
+                end
+            end
+        end
+    })
+
+    -- Anti-Lag (Todas Tools)
+    local dedupLock = {}
+    local IGNORED_PLAYER
+    local antiLagConnection
+
+    ImunesTab:AddToggle({
+        Name = "Anti-Lag (Todas Tools)",
+        Description = "Remove ferramentas duplicadas de outros jogadores",
+        Default = false,
+        Callback = function(state)
+            if not state then
+                if antiLagConnection then
+                    antiLagConnection:Disconnect()
+                    antiLagConnection = nil
+                end
+                return
+            end
+
+            IGNORED_PLAYER = LocalPlayer
+
+            local function isTargetTool(inst)
+                return inst:IsA("Tool")
+            end
+
+            local function gatherTools(player)
+                local found = {}
+                local containers = {}
+
+                if player.Character then table.insert(containers, player.Character) end
+                local backpack = player:FindFirstChildOfClass("Backpack")
+                if backpack then table.insert(containers, backpack) end
+                local sg = player:FindFirstChild("StarterGear")
+                if sg then table.insert(containers, sg) end
+
+                for _, container in ipairs(containers) do
+                    for _, child in ipairs(container:GetChildren()) do
+                        if isTargetTool(child) then
+                            table.insert(found, child)
+                        end
+                    end
+                end
+
+                return found
+            end
+
+            local function dedupePlayer(player)
+                if player == IGNORED_PLAYER then return end
+                if dedupLock[player] then return end
+                dedupLock[player] = true
+
+                local tools = gatherTools(player)
+                if #tools > 1 then
+                    for i = 2, #tools do
+                        pcall(function() tools[i]:Destroy() end)
+                    end
+                end
+
+                dedupLock[player] = false
+            end
+
+            -- Conexão periódica
+            antiLagConnection = task.spawn(function()
+                while state do
+                    for _, plr in ipairs(Players:GetPlayers()) do
+                        dedupePlayer(plr)
+                    end
+                    task.wait(2)
+                end
+            end)
+        end
+    })
+
+    -- Anti Fling Porta
+    ImunesTab:AddToggle({
+        Name = "Anti Fling Porta",
+        Description = "Esconde todas as portas do mapa",
+        Default = false,
+        Callback = function(state)
+            if not _G.hiddenDoors then
+                _G.hiddenDoors = {}
+            end
+            
+            if state then
+                _G.hiddenDoors = {}
+                
+                for _, obj in ipairs(workspace:GetDescendants()) do
+                    if obj:IsA("BasePart") and obj.Name:lower():find("door") then
+                        local doorData = {
+                            door = obj,
+                            originalTransparency = obj.Transparency,
+                            originalCanCollide = obj.CanCollide,
+                            originalCastShadow = obj.CastShadow
+                        }
+                        
+                        obj.Transparency = 1
+                        obj.CanCollide = false
+                        obj.CastShadow = false
+                        
+                        for _, child in ipairs(obj:GetChildren()) do
+                            if child:IsA("BasePart") then
+                                child.Transparency = 1
+                                child.CanCollide = false
+                            elseif child:IsA("SurfaceGui") or child:IsA("BillboardGui") then
+                                child.Enabled = false
+                            end
+                        end
+                        
+                        table.insert(_G.hiddenDoors, doorData)
+                    end
+                end
+                
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Anti Fling Porta",
+                    Text = #_G.hiddenDoors .. " portas escondidas!",
+                    Duration = 3
+                })
+                
+            else
+                for _, doorData in ipairs(_G.hiddenDoors or {}) do
+                    if doorData.door and doorData.door.Parent then
+                        doorData.door.Transparency = doorData.originalTransparency
+                        doorData.door.CanCollide = doorData.originalCanCollide
+                        doorData.door.CastShadow = doorData.originalCastShadow
+                        
+                        for _, child in ipairs(doorData.door:GetChildren()) do
+                            if child:IsA("BasePart") then
+                                child.Transparency = 0
+                                child.CanCollide = true
+                            elseif child:IsA("SurfaceGui") or child:IsA("BillboardGui") then
+                                child.Enabled = true
+                            end
+                        end
+                    end
+                end
+                
+                StarterGui:SetCore("SendNotification", {
+                    Title = "Anti Fling Porta",
+                    Text = #(_G.hiddenDoors or {}) .. " portas restauradas!",
+                    Duration = 3
+                })
+                _G.hiddenDoors = {}
+            end
+        end
+    })
+
+    -- Notificação de inicialização
+    StarterGui:SetCore("SendNotification", {
+        Title = "Shad0ws - Sistema de Proteção",
+        Text = "✅ Todos os sistemas carregados com sucesso!",
+        Duration = 5
+    })
+
+end)
+
+local TrollTab = Window:MakeTab({ Title = "Scripts Trolls", Icon = "rbxassetid://13364900349" })
+
+
+TrollTab:AddDiscordInvite({
+    Name = "Shad0ws Hub",
+    Description = "Entre No Discord",
+    Logo = "rbxassetid://111047667311481",
+    Invite = "https://discord.gg/eP55xHGy",
+})
+TrollTab:AddSection({ "Informações do Script" })
+TrollTab:AddParagraph({ "Roblox: こんにちはラウンドまたもっと1つ時間ンン" })
+TrollTab:AddParagraph({ "Colaboração", "Thurr, Linux Hub" })
+TrollTab:AddParagraph({ "Você está usando:", "Shad0ws Hub" })
+TrollTab:AddParagraph({"SHADOWS"})
+TrollTab:AddParagraph({"Novidades:", "Novo Bug Player em jogadores! Agora eles vão ter glitches enquanto jogam."})
+
+
+TrollTab:AddSection({ "Rejoin" })
+TrollTab:AddButton({
+    Name = "Rejoin",
+    Callback = function()
+        local TeleportService = game:GetService("TeleportService")
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, game.Players.LocalPlayer)
+    end
+})
+
+
+--=== UTIL (cria "botões" não clicáveis e função segura de update) ===--
+local function createInfoBlock(tab, title, initial)
+	-- Tenta usar Paragraph (título + descrição, igual na imagem).
+	local block
+	local ok = pcall(function()
+		block = tab:AddParagraph({ Title = title, Content = initial })
+	end)
+	-- Se a lib não tiver Paragraph, cai para Label (1 linha).
+	if not ok or not block then
+		ok = pcall(function()
+			block = tab:AddLabel(title .. (initial and ("\n" .. initial) or ""))
+		end)
+	end
+	return block
+end
+
+local function setBlockText(block, title, text)
+	if not block then return end
+	-- Tenta métodos comuns de libs de UI
+	local ok = pcall(function()
+		if block.Set then return block:Set(text) end
+		if block.SetDesc then return block:SetDesc(text) end
+		if block.SetText then return block:SetText(text) end
+		if block.Update then return block:Update(text) end
+		if block.Refresh then return block:Refresh(text) end
+	end)
+	-- Fallback para Label simples (reescreve tudo)
+	if not ok then
+		pcall(function()
+			if block.Text ~= nil then
+				block.Text = title .. "\n" .. text
+			end
+		end)
+	end
+end
+--====================================================================--
+
+-- Bloquinhos não clicáveis (todos NA ABA TROLL)
+local timerBlock   = createInfoBlock(TrollTab, "Tempo De Uso De Script", "00:00:00")
+local fpsBlock     = createInfoBlock(TrollTab, "Mostra Fps", "FPS: 0")
+local playersBlock = createInfoBlock(TrollTab, "Quantidade De Pessoas", tostring(#game:GetService("Players"):GetPlayers()))
+
+-- Serviços
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+
+-- Cronômetro (começa quando o Hub abre)
+local startClock = os.clock()
+
+-- FPS (cálculo suave por frame)
+local currentFPS = 0
+RunService.RenderStepped:Connect(function(dt)
+	currentFPS = math.floor(1/dt + 0.5)
+end)
+
+-- Atualizações periódicas (meio segundo)
+task.spawn(function()
+	while true do
+		task.wait(0.5)
+
+		-- Tempo de uso
+		local e = os.clock() - startClock
+		local h = math.floor(e/3600)
+		local m = math.floor((e%3600)/60)
+		local s = math.floor(e%60)
+		setBlockText(timerBlock, "Tempo De Uso De Script", string.format("%02d:%02d:%02d", h, m, s))
+
+		-- FPS
+		setBlockText(fpsBlock, "Mostra Fps", "FPS: " .. tostring(currentFPS))
+
+		-- Players (reforça o valor mesmo sem eventos)
+		setBlockText(playersBlock, "Quantidade De Pessoas", tostring(#Players:GetPlayers()))
+	end
+end)
+
+-- Atualiza players ao entrar/sair alguém
+local function refreshPlayers()
+	setBlockText(playersBlock, "Quantidade De Pessoas", tostring(#Players:GetPlayers()))
+end
+Players.PlayerAdded:Connect(refreshPlayers)
+Players.PlayerRemoving:Connect(refreshPlayers)
+
+
+TrollTab:AddSection({ "Black Hole" })
+TrollTab:AddButton({
+    Name = "Black Hole",
+    Description = " Ativando isso você puxa Parts até o seu personagem",
+    Callback = function()
+        local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
+local Workspace = game:GetService("Workspace")
+
+local angle = 1
+local radius = 10
+local blackHoleActive = false
+
+local function setupPlayer()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    local Folder = Instance.new("Folder", Workspace)
+    local Part = Instance.new("Part", Folder)
+    local Attachment1 = Instance.new("Attachment", Part)
+    Part.Anchored = true
+    Part.CanCollide = false
+    Part.Transparency = 1
+
+    return humanoidRootPart, Attachment1
+end
+
+local humanoidRootPart, Attachment1 = setupPlayer()
+
+if not getgenv().Network then
+    getgenv().Network = {
+        BaseParts = {},
+        Velocity = Vector3.new(14.46262424, 14.46262424, 14.46262424)
+    }
+
+    Network.RetainPart = function(part)
+        if typeof(part) == "Instance" and part:IsA("BasePart") and part:IsDescendantOf(Workspace) then
+            table.insert(Network.BaseParts, part)
+            part.CustomPhysicalProperties = PhysicalProperties.new(0, 0, 0, 0, 0)
+            part.CanCollide = false
+        end
+    end
+
+    local function EnablePartControl()
+        LocalPlayer.ReplicationFocus = Workspace
+        RunService.Heartbeat:Connect(function()
+            sethiddenproperty(LocalPlayer, "SimulationRadius", math.huge)
+            for _, part in pairs(Network.BaseParts) do
+                if part:IsDescendantOf(Workspace) then
+                    part.Velocity = Network.Velocity
+                end
+            end
+        end)
+    end
+
+    EnablePartControl()
+end
+
+local function ForcePart(v)
+    if v:IsA("Part") and not v.Anchored and not v.Parent:FindFirstChild("Humanoid") and not v.Parent:FindFirstChild("Head") and v.Name ~= "Handle" then
+        for _, x in next, v:GetChildren() do
+            if x:IsA("BodyAngularVelocity") or x:IsA("BodyForce") or x:IsA("BodyGyro") or x:IsA("BodyPosition") or x:IsA("BodyThrust") or x:IsA("BodyVelocity") or x:IsA("RocketPropulsion") then
+                x:Destroy()
+            end
+        end
+        if v:FindFirstChild("Attachment") then
+            v:FindFirstChild("Attachment"):Destroy()
+        end
+        if v:FindFirstChild("AlignPosition") then
+            v:FindFirstChild("AlignPosition"):Destroy()
+        end
+        if v:FindFirstChild("Torque") then
+            v:FindFirstChild("Torque"):Destroy()
+        end
+        v.CanCollide = false
+        
+        local Torque = Instance.new("Torque", v)
+        Torque.Torque = Vector3.new(1000000, 1000000, 1000000)
+        local AlignPosition = Instance.new("AlignPosition", v)
+        local Attachment2 = Instance.new("Attachment", v)
+        Torque.Attachment0 = Attachment2
+        AlignPosition.MaxForce = math.huge
+        AlignPosition.MaxVelocity = math.huge
+        AlignPosition.Responsiveness = 500
+        AlignPosition.Attachment0 = Attachment2
+        AlignPosition.Attachment1 = Attachment1
+    end
+end
+
+local function toggleBlackHole()
+    blackHoleActive = not blackHoleActive
+    if blackHoleActive then
+        for _, v in next, Workspace:GetDescendants() do
+            ForcePart(v)
+        end
+
+        Workspace.DescendantAdded:Connect(function(v)
+            if blackHoleActive then
+                ForcePart(v)
+            end
+        end)
+
+        spawn(function()
+            while blackHoleActive and RunService.RenderStepped:Wait() do
+                angle = angle + math.rad(2)
+
+                local offsetX = math.cos(angle) * radius
+                local offsetZ = math.sin(angle) * radius
+
+                Attachment1.WorldCFrame = humanoidRootPart.CFrame * CFrame.new(offsetX, 0, offsetZ)
+            end
+        end)
+    else
+        Attachment1.WorldCFrame = CFrame.new(0, -1000, 0)
+    end
+end
+
+LocalPlayer.CharacterAdded:Connect(function()
+    humanoidRootPart, Attachment1 = setupPlayer()
+    if blackHoleActive then
+        toggleBlackHole()
+    end
+end)
+
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/miroeramaa/TurtleLib/main/TurtleUiLib.lua"))()
+local window = library:Window("Projeto LKB")
+
+window:Slider("Radius Blackhole",1,100,10, function(Value)
+   radius = Value
+end)
+
+window:Toggle("Blackhole", true, function(Value)
+       if Value then
+            toggleBlackHole()
+        else
+            blackHoleActive = false
+        end
+end)
+
+spawn(function()
+    while true do
+        RunService.RenderStepped:Wait()
+        if blackHoleActive then
+            angle = angle + math.rad(angleSpeed)
+        end
+    end
+end)
+
+toggleBlackHole()
+    end
+})
+
+
+-- ======================= TROLL TAB (REDZ UI) =======================
+
+TrollTab.Defaults = {Speed = 16, Jump = 50, Gravity = 196.2}
+TrollTab.GetHumanoid = function()
+    local lp = game:GetService("Players").LocalPlayer
+    local char = lp.Character or lp.CharacterAdded:Wait()
+    return char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid")
+end
+
+TrollTab:AddSection({Name = "Player Config"})
+
+-- SPEED
+TrollTab.SpeedSlider = TrollTab:AddSlider({
+    Name = "Speed Player",
+    Description = "Defina a velocidade do seu personagem",
+    Min = 16,
+    Max = 1000,
+    Increment = 1,
+    Default = TrollTab.Defaults.Speed,
+    Callback = function(v)
+        local hum = TrollTab.GetHumanoid()
+        if hum then hum.WalkSpeed = v end
+    end
+})
+
+-- JUMP POWER
+TrollTab.JumpSlider = TrollTab:AddSlider({
+    Name = "Jump Power",
+    Description = "Defina a altura do pulo do seu personagem",
+    Min = 50,
+    Max = 1000,
+    Increment = 1,
+    Default = TrollTab.Defaults.Jump,
+    Callback = function(v)
+        local hum = TrollTab.GetHumanoid()
+        if hum then hum.JumpPower = v end
+    end
+})
+
+-- GRAVITY
+TrollTab.GravSlider = TrollTab:AddSlider({
+    Name = "Gravity",
+    Description = "Defina a gravidade do jogo",
+    Min = 0,
+    Max = 1000,
+    Increment = 1,
+    Default = TrollTab.Defaults.Gravity,
+    Callback = function(v)
+        workspace.Gravity = v
+    end
+})
+
+-- RESET
+TrollTab:AddButton({
+    Name = "Resetar Status",
+    Description = "Voltar Speed/Jump/Gravity para os valores padrão",
+    Callback = function()
+        local hum = TrollTab.GetHumanoid()
+        if hum then
+            hum.WalkSpeed = TrollTab.Defaults.Speed
+            hum.JumpPower = TrollTab.Defaults.Jump
+        end
+        workspace.Gravity = TrollTab.Defaults.Gravity
+
+        -- Forçar sliders a voltarem para o valor padrão
+        local function resetSlider(slider, val)
+            if not slider then return end
+            if slider.Set then pcall(function() slider:Set(val) end) end
+            if slider.SetValue then pcall(function() slider:SetValue(val) end) end
+            if slider.UpdateValue then pcall(function() slider:UpdateValue(val) end) end
+        end
+
+        resetSlider(TrollTab.SpeedSlider, TrollTab.Defaults.Speed)
+        resetSlider(TrollTab.JumpSlider, TrollTab.Defaults.Jump)
+        resetSlider(TrollTab.GravSlider, TrollTab.Defaults.Gravity)
+    end
+})
+
+-- INFINITE JUMP
+TrollTab.InfiniteJumpEnabled = false
+TrollTab.InfiniteJumpConn = nil
+
+TrollTab:AddToggle({
+    Name = "Infinite Jump",
+    Description = "Ative ou desative pulo infinito",
+    Default = false,
+    Callback = function(state)
+        TrollTab.InfiniteJumpEnabled = state
+        if TrollTab.InfiniteJumpConn then
+            TrollTab.InfiniteJumpConn:Disconnect()
+            TrollTab.InfiniteJumpConn = nil
+        end
+        if state then
+            TrollTab.InfiniteJumpConn = game:GetService("UserInputService").JumpRequest:Connect(function()
+                local hum = TrollTab.GetHumanoid()
+                if hum and TrollTab.InfiniteJumpEnabled then
+                    hum:ChangeState(Enum.HumanoidStateType.Jumping)
+                end
+            end)
+        end
+    end
+})
+
+-- Garantir humanoid após respawn
+game:GetService("Players").LocalPlayer.CharacterAdded:Connect(function()
+    TrollTab.GetHumanoid()
+end)
+-- ===================================================================
+
+
+-- Variáveis globais para controlar os scripts
+cancelExpansion = false
+expansionSound = nil
+expansionModel = nil
+originalSky = nil
+
+TrollTab:AddSection({ "Shadows" })
+TrollTab:AddButton({
+    Name = "Expansão SHADOWS 🎩",
+    Description = "Isso é muito OP, e causa glitches no cliente dos jogadores!",
+    Callback = function()
+-- Serviços
+local TextChatService = game:GetService("TextChatService")
+local Lighting = game:GetService("Lighting")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Player = Players.LocalPlayer
+
+-- Reset da variável de cancelamento
+cancelExpansion = false
+
+-- Aviso no chat (com \r conforme seu pedido)
+if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then 
+    TextChatService.TextChannels.RBXGeneral:SendAsync(
+        "hi\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\r\rServer: Expansão BY Shadows"
+    )
+else 
+    print("gojo chorou no banho F")
+end
+
+-- Função para ativar Expansão de Domínio
+local function ativarDominio()
+    local char = Player.Character or Player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart")
+
+    local dominio = Instance.new("Model", workspace)
+    dominio.Name = "InfiniteVoid"
+    expansionModel = dominio
+
+    local esfera = Instance.new("Part")
+    esfera.Shape = Enum.PartType.Ball
+    esfera.Size = Vector3.new(300, 300, 300)
+    esfera.Position = hrp.Position
+    esfera.Anchored = true
+    esfera.CanCollide = false
+    esfera.Material = Enum.Material.ForceField
+    esfera.Transparency = 0.3
+    esfera.Color = Color3.fromRGB(0, 0, 0)
+    esfera.Parent = dominio
+
+    local luz = Instance.new("PointLight", esfera)
+    luz.Color = Color3.fromRGB(0, 153, 255)
+    luz.Brightness = 10
+    luz.Range = 300
+
+    local ps = Instance.new("ParticleEmitter", esfera)
+    ps.Texture = "rbxassetid://243660364"
+    ps.Color = ColorSequence.new(Color3.fromRGB(0, 153, 255))
+    ps.LightEmission = 1
+    ps.Size = NumberSequence.new(3)
+    ps.Transparency = NumberSequence.new(0.2)
+    ps.Rate = 1000
+    ps.Lifetime = NumberRange.new(2)
+    ps.Speed = NumberRange.new(0)
+    ps.VelocitySpread = 180
+
+    local som = Instance.new("Sound", esfera)
+    som.SoundId = "rbxassetid://1843527678"
+    som.Volume = 2
+    som.Looped = true
+    som:Play()
+    expansionSound = som
+
+    originalSky = Lighting:FindFirstChildOfClass("Sky")
+    if originalSky then
+        originalSky.Parent = nil
+    end
+
+    local newSky = Instance.new("Sky", Lighting)
+    newSky.SkyboxBk = "rbxassetid://159454299"
+    newSky.SkyboxDn = "rbxassetid://159454296"
+    newSky.SkyboxFt = "rbxassetid://159454293"
+    newSky.SkyboxLf = "rbxassetid://159454286"
+    newSky.SkyboxRt = "rbxassetid://159454300"
+    newSky.SkyboxUp = "rbxassetid://159454288"
+end
+
+-- Executa a expansão de domínio
+ativarDominio()
+
+-- Áudio em loop infinito no jogador
+local selectedAudioID = 140031333626044
+
+task.spawn(function()
+    while not cancelExpansion do
+        local remote = ReplicatedStorage:FindFirstChild("RE") and ReplicatedStorage.RE:FindFirstChild("1Gu1nSound1s")
+        if remote then
+            remote:FireServer(workspace, selectedAudioID, 1)
+        end
+
+        local root = Player.Character and Player.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            local sound = Instance.new("Sound")
+            sound.SoundId = "rbxassetid://" .. selectedAudioID
+            sound.Volume = 1
+            sound.Looped = false
+            sound.Parent = root
+            sound:Play()
+            sound.Ended:Connect(function() sound:Destroy() end)
+            task.wait(sound.TimeLength + 0.1)
+        else
+            warn("HumanoidRootPart não encontrado")
+            break
+        end
+    end
+end)
+
+-- ========================
+-- ATAQUE COM ARMA: Assault
+-- ========================
+
+local RE = ReplicatedStorage:WaitForChild("RE")
+local ClearEvent = RE:FindFirstChild("1Clea1rTool1s")
+local ToolEvent = RE:FindFirstChild("1Too1l")
+local FireEvent = RE:FindFirstChild("1Gu1n")
+
+-- Limpa ferramentas
+local function clearAllTools()
+    if ClearEvent then
+        ClearEvent:FireServer("ClearAllTools")
+    end
+end
+
+-- Solicita Assault
+local function getAssault()
+    if ToolEvent then
+        ToolEvent:InvokeServer("PickingTools", "Assault")
+    end
+end
+
+-- Verifica se recebeu Assault
+local function hasAssault()
+    return Player.Backpack:FindFirstChild("Assault") ~= nil
+end
+
+-- Atira em parte
+local function fireAtPart(targetPart)
+    local gunScript = Player.Backpack:FindFirstChild("Assault")
+        and Player.Backpack.Assault:FindFirstChild("GunScript_Local")
+
+    if not gunScript or not targetPart then return end
+
+    local args = {
+        targetPart,
+        targetPart,
+        Vector3.new(1e14, 1e14, 1e14),
+        targetPart.Position,
+        gunScript:FindFirstChild("MuzzleEffect"),
+        gunScript:FindFirstChild("HitEffect"),
+        0,
+        0,
+        { false },
+        {
+            25,
+            Vector3.new(100, 100, 100),
+            BrickColor.new(29),
+            0.25,
+            Enum.Material.SmoothPlastic,
+            0.25
+        },
+        true,
+        false
+    }
+
+    FireEvent:FireServer(unpack(args))
+end
+
+-- Atira em todos os jogadores
+local function fireAtAllPlayers(times)
+    for i = 1, times do
+        if cancelExpansion then break end
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= Player and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                fireAtPart(player.Character.HumanoidRootPart)
+                task.wait(0.1)
+            end
+        end
+    end
+end
+
+-- Loop automático de ataque
+task.spawn(function()
+    while not cancelExpansion do
+        clearAllTools()
+        getAssault()
+
+        repeat
+            task.wait(0.2)
+        until hasAssault() or cancelExpansion
+
+        if not cancelExpansion then
+            fireAtAllPlayers(3)
+            task.wait(1)
+        end
+    end
+end)
+end
+})
+
+TrollTab:AddButton({
+    Name = "SHADOWS PAROU",
+    Description = "Para o ataque e remove a Expansão de Domínio.",
+    Callback = function()
+        -- Sinaliza para parar loops
+        cancelExpansion = true
+
+        -- Para o som em loop
+        if expansionSound then
+            expansionSound:Stop()
+            expansionSound:Destroy()
+            expansionSound = nil
+        end
+
+        -- Remove o modelo "InfiniteVoid" criado
+        if expansionModel and expansionModel.Parent then
+            expansionModel:Destroy()
+            expansionModel = nil
+        end
+
+        -- Restaura o Sky original
+        local Lighting = game:GetService("Lighting")
+        local currentSky = Lighting:FindFirstChildOfClass("Sky")
+        if currentSky then currentSky:Destroy() end
+
+        if originalSky then
+            originalSky.Parent = Lighting
+            originalSky = nil
+        end
+
+        -- Mensagem no chat confirmando cancelamento
+        local TextChatService = game:GetService("TextChatService")
+        if TextChatService.ChatVersion == Enum.ChatVersion.TextChatService then
+            TextChatService.TextChannels.RBXGeneral:SendAsync("[SHADOWS PAROU]")
+        else
+            print("SHADOWS PAROU")
+        end
+    end
+})
+
+TrollTab:AddSection({ "Stop Bug" })
+
+TrollTab:AddButton({
+    Name = "ANTI-BUG ATIVO",
+    Description = "Ativa proteção contra objetos bugados",
+    Callback = function()
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        
+        -- Lista de nomes/classes a bloquear
+        local blacklist = {
+            {Name = "water", Class = "Part"},
+        }
+        
+        -- Função para neutralizar a parte
+        local function neutralize(part)
+            if part and part:IsA("BasePart") then
+                -- corta qualquer efeito físico
+                pcall(function()
+                    part.Anchored = true
+                    part.CanCollide = false
+                    part.Massless = true
+                    part.Transparency = 1
+                    part:ClearAllChildren()
+                end)
+                -- opcional: deletar
+                pcall(function()
+                    part:Destroy()
+                end)
+            end
+        end
+        
+        -- Bloqueia quando aparecer no Workspace
+        workspace.DescendantAdded:Connect(function(obj)
+            for _, rule in ipairs(blacklist) do
+                if obj.Name == rule.Name and obj.ClassName == rule.Class then
+                    neutralize(obj)
+                end
+            end
+        end)
+        
+        -- Bloqueia os que já existem
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            for _, rule in ipairs(blacklist) do
+                if obj.Name == rule.Name and obj.ClassName == rule.Class then
+                    neutralize(obj)
+                end
+            end
+        end
+        
+        -- Loop extra pra pegar nil-instances clonados
+        task.spawn(function()
+            while task.wait(0.25) do
+                for _, rule in ipairs(blacklist) do
+                    for _, v in next, getnilinstances() do
+                        if v.Name == rule.Name and v.ClassName == rule.Class then
+                            neutralize(v)
+                        end
+                    end
+                end
+            end
+        end)
+        
+        -- Proteção extra no Humanoid
+        LocalPlayer.CharacterAdded:Connect(function(char)
+            local hum = char:WaitForChild("Humanoid")
+            hum.Touched:Connect(function(hit)
+                for _, rule in ipairs(blacklist) do
+                    if hit.Name == rule.Name and hit.ClassName == rule.Class then
+                        neutralize(hit)
+                    end
+                end
+            end)
+        end)
+    end
+})
